@@ -32,8 +32,9 @@ scaler = StandardScaler()
 scaler.fit(X_train)
 X_train_scaled = scaler.transform(X_train)
 X_test_scaled = scaler.transform(X_test)
+
 # %% [markdown]
-# #Build a neural network model, add layers and config it
+# # Build a neural network model, add layers and config it
 # %%
 # create, initiate a Sequential model
 nn_model = tf.keras.models.Sequential()
@@ -56,7 +57,7 @@ nn_model.compile(optimizer='adam',
                 metrics =['accuracy'])
 
 # %% [markdown]
-# #fit, train this nn_model
+# # fit, train this nn_model
 # %%
 fit_model = nn_model.fit(X_train_scaled, y_train, epochs=100)
 
@@ -83,10 +84,11 @@ model_loss, model_acc = nn_model.evaluate(X_test_scaled, y_test,
 print(f"Loss: {model_loss}, Accuracy: {model_acc}")
 
 # %% [markdown]
-# #apply model to novel dataset, to predict the classification
+# # apply model to novel dataset, to predict the classification
 # %%
 # generate a new dataset
 X_new, y_new = make_blobs(n_features=2, n_samples=10, centers=2,random_state=78)
-
+y_new
+# %%
 # make a class predictions for input samples
 nn_model.predict_classes(X_new)
