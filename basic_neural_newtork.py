@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf 
 # %% [markdown]
-# # Linear seperable dataset
+# # Linear seperable dataset, single neuron, single layer
+# # ---------------------------------------------------------------------
+
 # %% [markdown]
 # A single neuron, single layer model for linear separable dataset, 
 # performing a binary classification
@@ -66,6 +68,8 @@ nn_model.compile(optimizer='adam',
 # %%
 fit_model = nn_model.fit(X_train_scaled, y_train, epochs=100)
 
+# %% [markdown]
+# neural network was able to correctly classify each of the points in the test data. In other words, the model was able to correctly classify data it was not trained on 100% of the time.
 
 # %%
 # training history record of loss value and metrics value
@@ -99,8 +103,8 @@ y_new
 nn_model.predict_classes(X_new)
 
 # %% [markdown]
-# # Nonlinear dataset
-
+# # Nonlinear characteristics of input data, single neuron, single layer
+# ---------------------------------------------------------------------
 # %% [markdown]
 # Use same NN_model to retrain by nonlinear dataset
 # %%
@@ -151,3 +155,30 @@ print(f"Loss: {moon_model_loss}, Accuracy: {moon_model_accuracy}")
 # %% [markdown]
 # According to the accuracy metric, the basic single-neuron, single-layer neural network model was only able to correctly classify 89% of all data points in the nonlinear training data. Depending on a person’s use case, 89% accuracy could be sufficient for a first-pass model. For example, if we were trying to use a neural network model to separate left-handed people from right-handed people, a model that is correct 89% of the time is very accurate, and guessing incorrectly does not have a huge negative impact.
 # However, in many industrial and medical use cases, a model’s classification accuracy must exceed 95% or even 99%. In these cases, we wouldn’t be satisfied with the basic single-neuron, single-layer neural network model, and we would have to design a more robust neural network. In summary, the more complicated and nonlinear the dataset, the more components we’d need to add to a neural network to achieve our desired performance.
+# %% [markdown]
+# # moons data, multiple neurons, single layer
+# ---------------------------------------------------------------------
+
+# %%
+# create a new Sequential model
+new_nn_model = tf.keras.models.Sequential()
+
+num_inputs = 2 
+num_hidden_nodes = 6   # rule of thumb: 2 to 3 times
+
+# add the input and first hidden layer
+new_nn_model.add(tf.keras.layers.Dense(units=num_hidden_nodes, 
+                        input_dim =num_inputs, activation = 'relu'))
+# add output layer
+new_nn_model.add(tf.keras.layers.Dense(units = 1, activation='sigmoid'))
+
+# Compiling the new Sequential model together, and customize metrics
+new_nn_model.compile(loss = 'binary_crossentropy', optimizer ='adam',
+                    metrics = ['accuracy'])
+
+# %%
+# fit, train model to training data
+new_moon_fit_model = new_nn_model.fit(X_moon_train_scaled, y_moon_train, epochs=100, shuffle=True)
+
+
+# %%
