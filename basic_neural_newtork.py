@@ -1,12 +1,17 @@
 # %%
 import pandas as pd 
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, make_moons
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 import matplotlib.pyplot as plt 
 
 import tensorflow as tf 
+# %% [markdown]
+# # Linear seperable dataset
+# %% [markdown]
+# A single neuron, single layer model for linear separable dataset, 
+# performing a binary classification
 
 # %%
 # generate dummy dataset
@@ -92,3 +97,57 @@ y_new
 # %%
 # make a class predictions for input samples
 nn_model.predict_classes(X_new)
+
+# %% [markdown]
+# # Nonlinear dataset
+
+# %% [markdown]
+# Use same NN_model to retrain by nonlinear dataset
+# %%
+# generate dummy nonlinear data
+X_moons, y_moons = make_moons(n_samples=1000, noise=0.08, random_state =78)
+
+# transform y_moons to a vertical verctor
+y_moons = y_moons.reshape(-1,1)   # -1 means keep orginal row counts
+
+# create a DF to plot the nonlinear dummy data
+moons_df = pd.DataFrame(X_moons, columns=["Feature 1", "Feature 2"] )
+moons_df['Target']= y_moons
+
+# viz
+moons_df.plot.scatter(x='Feature 1', y='Feature 2', 
+                        c='Target', colormap ='winter')
+
+
+# %%
+# split
+X_moon_train, X_moon_test, y_moon_train, y_moon_test = train_test_split(
+                    X_moons, y_moons, random_state =78)
+
+# Standardize
+moon_scaler = StandardScaler()
+moon_scaler.fit(X_moon_train)
+
+X_moon_train_scaled = moon_scaler.transform(X_moon_train)
+X_moon_test_scaled = moon_scaler.transform(X_moon_test)
+
+# %%
+# same compiling, same tructure. Only input data is different
+
+#nn_model.compile(optimizer='adam', loss='binary_crossentropy',metrics =['accuracy'])
+
+# %%
+# retrain the same sequential model with new nonlinear dataset
+moon_fit_model = nn_model.fit(X_moon_train_scaled, y_moon_train, 
+                 epochs= 100, shuffle =True)  # whether to shuffle the training data before each epoch
+
+# Epoch 100/100 750/750 [==============================] - 0s 37us/sample - loss: 0.2701 - accuracy: 0.8920
+
+# %%
+# evaluate this nn_model using the moon test data
+moon_model_loss, moon_model_accuracy = nn_model.evaluate(X_moon_test, y_moon_test)
+print(f"Loss: {moon_model_loss}, Accuracy: {moon_model_accuracy}")
+
+# %% [markdown]
+# According to the accuracy metric, the basic single-neuron, single-layer neural network model was only able to correctly classify 89% of all data points in the nonlinear training data. Depending on a person’s use case, 89% accuracy could be sufficient for a first-pass model. For example, if we were trying to use a neural network model to separate left-handed people from right-handed people, a model that is correct 89% of the time is very accurate, and guessing incorrectly does not have a huge negative impact.
+# However, in many industrial and medical use cases, a model’s classification accuracy must exceed 95% or even 99%. In these cases, we wouldn’t be satisfied with the basic single-neuron, single-layer neural network model, and we would have to design a more robust neural network. In summary, the more complicated and nonlinear the dataset, the more components we’d need to add to a neural network to achieve our desired performance.
