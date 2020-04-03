@@ -59,7 +59,7 @@ X_test_scaled = scaler.transform(X_test)
 # -------------------Create model-----------------------
 # define some parameter
 number_input_features = len(X_train[0])
-hidden_nodes_layer1 =  8
+hidden_nodes_layer1 =  8   # use deep_learning, not follow 2 to 3 rule of thumb
 hidden_nodes_layer2 = 5
 
 # create a Sequential model
