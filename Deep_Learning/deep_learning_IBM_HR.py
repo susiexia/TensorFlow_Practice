@@ -2,6 +2,8 @@
 
 # Dataset Resource: https://www.kaggle.com/pavansubhasht/ibm-hr-analytics-attrition-dataset
 # Objectives: Tabular Dataset, Classification: identify whether or not a person is likely to depart from the company given his or her current employee profile
+
+# plus practice checkpoint saving preocess and entire model saving process
 # %% [markdown]
 # # import, setup and preprocessing
 # %%
@@ -81,6 +83,23 @@ nn_model.add(tf.keras.layers.Dense(units = 1,
 # check structure of model
 nn_model.summary()
 # %%
+#------------------------save to Checkpoint---------------------
+import os
+from tensorflow.keras.callbacks import ModelCheckpoint
+
+# make a directory and save path
+os.makedirs('checkpoints/', exist_ok=True)
+checkpoint_path = 'checkpoints/weights.{epoch:02d}.hdf5'
+
+# create a call back that save the model's weights every 5 epochs
+# then add callback parameter in training process
+cp_callback = ModelCheckpoint(filepath = checkpoint_path,
+                            save_weights_only = True, # otherwise will save entire model
+                            save_freq = 1000,   # saved every 1000 samples tested
+                            verbose = 1)
+
+
+# %%
 # -------------------compile, config model-----------------------
 nn_model.compile(loss = 'binary_crossentropy',
                 optimizer = 'adam',
@@ -88,15 +107,49 @@ nn_model.compile(loss = 'binary_crossentropy',
 
 # %%
 # ---------------------train, fit with data-------------------
-nn_fit_model = nn_model.fit(X_train_scaled, y_train, epochs=100)
+nn_fit_model = nn_model.fit(X_train_scaled, y_train, epochs=100,
+                            callbacks = [cp_callback])
 
+# %%
 # ---------------------evaluate using test data-----------
 model_loss, model_accuracy = nn_model.evaluate(
                                             X_test_scaled, y_test,
                                             verbose = 2)
-
 print(f"Loss: {model_loss}, Accuracy: {model_accuracy}")
 
+# %%
+# ---------------------------Regenerate model's weights-----------------
+# create a new Sequential model for restore previous saved weight on training step
+new_cp_model = tf.keras.models.Sequential()
+new_cp_model.add(tf.keras.layers.Dense(units = hidden_nodes_layer1,
+                                    input_dim = number_input_features,
+                                    activation ='relu'))
+new_cp_model.add(tf.keras.layers.Dense(units = hidden_nodes_layer2,
+                                    activation = 'relu'))
+new_cp_model.add(tf.keras.layers.Dense(units = 1,
+                                    activation = 'sigmoid'))
+new_cp_model.compile(loss = 'binary_crossentropy',
+                    optimizer = 'adam',
+                    metrics =['accuracy'])
+# restore saved model weights, no need to retrain model
+new_cp_model.load_weights('/checkpoints/weights.100.hdf5')   # last one
+
+# evaluate (exact same outcome)
+model_loss, model_accuracy = new_cp_model.evaluate(X_test_scaled,y_test,verbose=2)
+print(f"Loss: {model_loss}, Accuracy: {model_accuracy}")
+
+# %%
+# ---------------------------Reproduce model----------------------------
+# export and import the entire model (weights, structure, and configuration settings)
+nn_model.save('trained_attrition.h5')
+
+# Try to import previous fully trained model in hdf5 file format
+
+nn_imported = tf.keras.models.load_model('trained_attrition.h5')
+
+# evaluate (exact same outcome)
+model_loss, model_accuracy = nn_imported.evaluate(X_test_scaled,y_test,verbose=2)
+print(f"Loss: {model_loss}, Accuracy: {model_accuracy}")
 # %% [markdown]
 # the model was able to correctly identify employees 
 # who are at risk of attrition approximately 87% of the time. 
